@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Каталог продуктов</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+    <h1>Каталог продуктов</h1>
+    <form id="product-form">
+        <label for="name">Название:</label>
+        <input type="text" id="name" name="name" required>
+        
+        <label for="description">Описание:</label>
+        <textarea id="description" name="description" required></textarea>
+        
+        <label for="price">Цена:</label>
+        <input type="number" id="price" name="price" step="0.01" required>
+        
+        <button type="submit">Отправить</button>
+    </form>
+    
+    <h2>Список продуктов</h2>
+    <table id="products-table">
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Описание</th>
+                <th>Цена</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('product-form');
+            const tableBody = document.querySelector('#products-table tbody');
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const formData = new FormData(form);
+                const product = {
+                    name: formData.get('name'),
+                    description: formData.get('description'),
+                    price: parseFloat(formData.get('price')),
+                };
+
+                try {
+                    await fetch('/api/products/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(product),
+                    });
+                    form.reset();
+                    loadProducts();
+                } catch (error) {
+                    console.error('Ошибка:', error);
+                }
+            });
+
+            const loadProducts = async () => {
+                try {
+                    const response = await fetch('/api/products/');
+                    const products = await response.json();
+                    tableBody.innerHTML = '';
+                    products.forEach(product => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${product.name}</td>
+                            <td>${product.description}</td>
+                            <td>${product.price}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                } catch (error) {
+                    console.error('Ошибка:', error);
+                }
+            };
+
+            loadProducts();
+        });
+    </script>
+</body>
+</html>
